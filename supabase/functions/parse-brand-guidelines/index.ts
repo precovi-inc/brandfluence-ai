@@ -82,15 +82,10 @@ serve(async (req) => {
     ) {
       fileContent = await fileResponse.text();
     } else {
-      // For PDF/Word/images, we'll send to AI with description
-      const buffer = await fileResponse.arrayBuffer();
-      const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
-      
-      // For images, include as base64 in the message
+      // For PDF/Word/images, describe the file type for AI context
       if (fileType.match(/^(png|jpg|jpeg|gif|webp)$/i)) {
         fileContent = `[Image file: ${fileName}]`;
       } else {
-        // For PDF/Word, describe that we have the file
         fileContent = `[Document file: ${fileName}, type: ${fileType}]`;
       }
     }

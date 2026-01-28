@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Sparkles, ArrowRight, Check, Instagram, Twitter, Linkedin, Facebook } from 'lucide-react';
+import { ImageGallery } from '@/components/create-post/ImageGallery';
 
 const platforms = [
   { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'bg-instagram' },
@@ -23,6 +23,7 @@ export default function CreatePost() {
   const [title, setTitle] = useState('');
   const [direction, setDirection] = useState('');
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
+  const [mediaImages, setMediaImages] = useState<string[]>([]);
 
   const togglePlatform = (platformId: string) => {
     setSelectedPlatforms((prev) =>
@@ -135,6 +136,12 @@ export default function CreatePost() {
                   onChange={(e) => setDirection(e.target.value)}
                 />
               </div>
+
+              <ImageGallery
+                images={mediaImages}
+                onImagesChange={setMediaImages}
+                maxImages={10}
+              />
 
               <div className="flex justify-end">
                 <Button

@@ -1,1 +1,4 @@
 project_id = "hseggnvxoiujekyhtuqx"
+
+[functions.parse-brand-guidelines]
+verify_jwt = false

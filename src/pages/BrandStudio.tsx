@@ -7,8 +7,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { useBrands } from '@/hooks/useBrands';
 import { useState } from 'react';
-import { Palette, Plus, Globe, Instagram, Twitter, Linkedin, Facebook, Loader2 } from 'lucide-react';
+import { Palette, Plus, Globe, Instagram, Twitter, Linkedin, Facebook, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
+import { BrandGuidelinesUpload } from '@/components/brand/BrandGuidelinesUpload';
 
 const voiceOptions = [
   'Professional', 'Friendly', 'Bold', 'Confident', 'Warm',
@@ -18,6 +19,7 @@ const voiceOptions = [
 export default function BrandStudio() {
   const { brands, createBrand, isCreating } = useBrands();
   const [showForm, setShowForm] = useState(false);
+  const [expandedBrandId, setExpandedBrandId] = useState<string | null>(null);
   const [brandName, setBrandName] = useState('');
   const [websiteUrl, setWebsiteUrl] = useState('');
   const [instagramHandle, setInstagramHandle] = useState('');
@@ -264,7 +266,30 @@ export default function BrandStudio() {
                       </div>
                     </div>
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="mt-4 w-full"
+                    onClick={() => setExpandedBrandId(expandedBrandId === brand.id ? null : brand.id)}
+                  >
+                    {expandedBrandId === brand.id ? (
+                      <>
+                        <ChevronUp className="mr-2 h-4 w-4" />
+                        Hide Guidelines
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="mr-2 h-4 w-4" />
+                        Manage Guidelines
+                      </>
+                    )}
+                  </Button>
                 </CardContent>
+                {expandedBrandId === brand.id && (
+                  <div className="border-t px-6 py-4">
+                    <BrandGuidelinesUpload brandId={brand.id} />
+                  </div>
+                )}
               </Card>
             ))}
           </div>

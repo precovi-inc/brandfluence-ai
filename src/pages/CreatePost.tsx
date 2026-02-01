@@ -6,8 +6,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Sparkles, ArrowRight, Check, Instagram, Twitter, Linkedin, Facebook } from 'lucide-react';
+import { Sparkles, ArrowRight, Check, Instagram, Twitter, Linkedin, Facebook, Loader2 } from 'lucide-react';
 import { ImageGallery } from '@/components/create-post/ImageGallery';
+import { GeneratedContentCard, PlatformVariation } from '@/components/create-post/GeneratedContentCard';
+import { useContentGeneration } from '@/hooks/useContentGeneration';
 
 const platforms = [
   { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'bg-instagram' },
@@ -24,6 +26,9 @@ export default function CreatePost() {
   const [direction, setDirection] = useState('');
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [mediaImages, setMediaImages] = useState<string[]>([]);
+  const [regeneratingPlatform, setRegeneratingPlatform] = useState<string | null>(null);
+  
+  const { isGenerating, variations, generateContent, updateVariation, regenerateSingle } = useContentGeneration();
 
   const togglePlatform = (platformId: string) => {
     setSelectedPlatforms((prev) =>
@@ -31,6 +36,30 @@ export default function CreatePost() {
         ? prev.filter((p) => p !== platformId)
         : [...prev, platformId]
     );
+  };
+
+  const handleGenerate = async () => {
+    const result = await generateContent({
+      title,
+      direction,
+      platforms: selectedPlatforms,
+      imageUrls: mediaImages,
+    });
+    
+    if (result) {
+      setCurrentStep(1);
+    }
+  };
+
+  const handleRegenerate = async (platform: string) => {
+    setRegeneratingPlatform(platform);
+    await regenerateSingle(platform, {
+      title,
+      direction,
+      platforms: [platform],
+      imageUrls: mediaImages,
+    });
+    setRegeneratingPlatform(null);
   };
 
   return (
@@ -145,12 +174,21 @@ export default function CreatePost() {
 
               <div className="flex justify-end">
                 <Button
-                  onClick={() => setCurrentStep(1)}
-                  disabled={!title || selectedPlatforms.length === 0 || !direction}
+                  onClick={handleGenerate}
+                  disabled={!title || selectedPlatforms.length === 0 || !direction || isGenerating}
                   className="gap-2"
                 >
-                  <Sparkles className="h-4 w-4" />
-                  Generate Content
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4" />
+                      Generate Content
+                    </>
+                  )}
                 </Button>
               </div>
             </CardContent>
@@ -158,33 +196,55 @@ export default function CreatePost() {
         )}
 
         {currentStep === 1 && (
-          <Card className="animate-fade-up">
-            <CardHeader>
-              <CardTitle>AI Generated Content</CardTitle>
-              <CardDescription>
-                Review the AI-generated variations for your post
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-center py-12">
-                <div className="text-center">
-                  <div className="mx-auto flex h-16 w-16 animate-pulse-subtle items-center justify-center rounded-2xl bg-primary/10">
-                    <Sparkles className="h-8 w-8 text-primary" />
+          <div className="space-y-6 animate-fade-up">
+            <Card>
+              <CardHeader>
+                <CardTitle>AI Generated Content</CardTitle>
+                <CardDescription>
+                  Review and edit the AI-generated variations for each platform
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            {variations.length > 0 ? (
+              <div className="space-y-4">
+                {variations.map((variation) => (
+                  <GeneratedContentCard
+                    key={variation.platform}
+                    variation={variation}
+                    onContentChange={(content) => updateVariation(variation.platform, content)}
+                    onRegenerate={() => handleRegenerate(variation.platform)}
+                    isRegenerating={regeneratingPlatform === variation.platform}
+                  />
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="py-12">
+                  <div className="flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="mx-auto flex h-16 w-16 animate-pulse-subtle items-center justify-center rounded-2xl bg-primary/10">
+                        <Sparkles className="h-8 w-8 text-primary" />
+                      </div>
+                      <p className="mt-4 font-medium">Generating content...</p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Creating variations tailored to your brand
+                      </p>
+                    </div>
                   </div>
-                  <p className="mt-4 font-medium">Generating content...</p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Creating variations tailored to your brand
-                  </p>
-                </div>
-              </div>
-              <div className="flex justify-between">
-                <Button variant="outline" onClick={() => setCurrentStep(0)}>
-                  Back
-                </Button>
-                <Button onClick={() => setCurrentStep(2)}>Continue</Button>
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            )}
+
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={() => setCurrentStep(0)}>
+                Back
+              </Button>
+              <Button onClick={() => setCurrentStep(2)} disabled={variations.length === 0}>
+                Continue to Edit
+              </Button>
+            </div>
+          </div>
         )}
 
         {currentStep === 2 && (

@@ -54,11 +54,16 @@ export function useContentGeneration() {
     }
   };
 
-  const updateVariation = (platform: string, content: string) => {
+  const updateVariation = (platform: string, content: string, hashtags?: string[]) => {
     setVariations(prev => 
       prev.map(v => 
         v.platform === platform 
-          ? { ...v, content, characterCount: content.length }
+          ? { 
+              ...v, 
+              content, 
+              characterCount: content.length,
+              ...(hashtags !== undefined && { hashtags })
+            }
           : v
       )
     );

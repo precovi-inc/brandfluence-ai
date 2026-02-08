@@ -8,7 +8,8 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Sparkles, ArrowRight, Check, Instagram, Twitter, Linkedin, Facebook, Loader2 } from 'lucide-react';
 import { ImageGallery } from '@/components/create-post/ImageGallery';
-import { GeneratedContentCard, PlatformVariation } from '@/components/create-post/GeneratedContentCard';
+import { GeneratedContentCard } from '@/components/create-post/GeneratedContentCard';
+import { CraftStep } from '@/components/create-post/CraftStep';
 import { useContentGeneration } from '@/hooks/useContentGeneration';
 
 const platforms = [
@@ -248,25 +249,12 @@ export default function CreatePost() {
         )}
 
         {currentStep === 2 && (
-          <Card className="animate-fade-up">
-            <CardHeader>
-              <CardTitle>Craft Your Post</CardTitle>
-              <CardDescription>
-                Edit and refine the content before finalizing
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <p className="text-center py-8 text-muted-foreground">
-                Content editing coming soon...
-              </p>
-              <div className="flex justify-between">
-                <Button variant="outline" onClick={() => setCurrentStep(1)}>
-                  Back
-                </Button>
-                <Button onClick={() => setCurrentStep(3)}>Continue</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <CraftStep
+            variations={variations}
+            onVariationChange={updateVariation}
+            onBack={() => setCurrentStep(1)}
+            onContinue={() => setCurrentStep(3)}
+          />
         )}
 
         {currentStep === 3 && (

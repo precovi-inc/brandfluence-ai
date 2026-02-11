@@ -4,15 +4,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Sparkles, ArrowRight, Check, Instagram, Twitter, Linkedin, Facebook, Loader2 } from 'lucide-react';
+import { Sparkles, ArrowRight, Check, Instagram, Twitter, Linkedin, Facebook, Loader2, Palette } from 'lucide-react';
 import { ImageGallery } from '@/components/create-post/ImageGallery';
 import { GeneratedContentCard } from '@/components/create-post/GeneratedContentCard';
 import { CraftStep } from '@/components/create-post/CraftStep';
 import { FinalizeStep } from '@/components/create-post/FinalizeStep';
 import { useContentGeneration } from '@/hooks/useContentGeneration';
 import { useContentLibrary } from '@/hooks/useContentLibrary';
+import { useBrands } from '@/hooks/useBrands';
 import { toast } from 'sonner';
 
 const platforms = [
@@ -30,10 +32,12 @@ export default function CreatePost() {
   const [direction, setDirection] = useState('');
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [mediaImages, setMediaImages] = useState<string[]>([]);
+  const [selectedBrandId, setSelectedBrandId] = useState<string>('');
   const [regeneratingPlatform, setRegeneratingPlatform] = useState<string | null>(null);
   
   const { isGenerating, variations, generateContent, updateVariation, regenerateSingle } = useContentGeneration();
   const { createPost, isCreating } = useContentLibrary();
+  const { brands, isLoading: brandsLoading } = useBrands();
 
   const handleSave = async (status: 'draft' | 'published') => {
     const allHashtags = variations.flatMap(v => v.hashtags);
@@ -49,6 +53,7 @@ export default function CreatePost() {
           media_urls: mediaImages,
           hashtags: uniqueHashtags,
           status,
+          brand_id: selectedBrandId && selectedBrandId !== 'none' ? selectedBrandId : null,
           ai_variations: variations.map(v => ({ content: v.content, platform: v.platform })),
           published_at: status === 'published' ? new Date().toISOString() : null,
         },
@@ -79,6 +84,7 @@ export default function CreatePost() {
       direction,
       platforms: selectedPlatforms,
       imageUrls: mediaImages,
+      brandId: selectedBrandId && selectedBrandId !== 'none' ? selectedBrandId : undefined,
     });
     
     if (result) {
@@ -93,6 +99,7 @@ export default function CreatePost() {
       direction,
       platforms: [platform],
       imageUrls: mediaImages,
+      brandId: selectedBrandId && selectedBrandId !== 'none' ? selectedBrandId : undefined,
     });
     setRegeneratingPlatform(null);
   };
@@ -157,6 +164,32 @@ export default function CreatePost() {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                 />
+              </div>
+
+              {/* Brand Selection */}
+              <div className="space-y-2">
+                <Label>Brand <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                <Select value={selectedBrandId} onValueChange={setSelectedBrandId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a brand for on-brand content" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No brand — generic tone</SelectItem>
+                    {brands.map((brand) => (
+                      <SelectItem key={brand.id} value={brand.id}>
+                        <div className="flex items-center gap-2">
+                          <Palette className="h-3.5 w-3.5 text-muted-foreground" />
+                          {brand.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedBrandId && selectedBrandId !== 'none' && (
+                  <p className="text-xs text-muted-foreground">
+                    AI will use this brand's voice, guidelines, and audience to generate content.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">

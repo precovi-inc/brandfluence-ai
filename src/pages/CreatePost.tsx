@@ -10,7 +10,10 @@ import { Sparkles, ArrowRight, Check, Instagram, Twitter, Linkedin, Facebook, Lo
 import { ImageGallery } from '@/components/create-post/ImageGallery';
 import { GeneratedContentCard } from '@/components/create-post/GeneratedContentCard';
 import { CraftStep } from '@/components/create-post/CraftStep';
+import { FinalizeStep } from '@/components/create-post/FinalizeStep';
 import { useContentGeneration } from '@/hooks/useContentGeneration';
+import { useContentLibrary } from '@/hooks/useContentLibrary';
+import { toast } from 'sonner';
 
 const platforms = [
   { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'bg-instagram' },
@@ -30,7 +33,38 @@ export default function CreatePost() {
   const [regeneratingPlatform, setRegeneratingPlatform] = useState<string | null>(null);
   
   const { isGenerating, variations, generateContent, updateVariation, regenerateSingle } = useContentGeneration();
+  const { createPost, isCreating } = useContentLibrary();
 
+  const handleSave = async (status: 'draft' | 'published') => {
+    const allHashtags = variations.flatMap(v => v.hashtags);
+    const uniqueHashtags = [...new Set(allHashtags)];
+    const primaryContent = variations[0]?.content || '';
+
+    return new Promise<void>((resolve, reject) => {
+      createPost(
+        {
+          title,
+          content: primaryContent,
+          platforms: selectedPlatforms,
+          media_urls: mediaImages,
+          hashtags: uniqueHashtags,
+          status,
+          ai_variations: variations.map(v => ({ content: v.content, platform: v.platform })),
+          published_at: status === 'published' ? new Date().toISOString() : null,
+        },
+        {
+          onSuccess: () => {
+            toast.success(`Post saved as ${status}!`);
+            resolve();
+          },
+          onError: (err) => {
+            toast.error('Failed to save post');
+            reject(err);
+          },
+        }
+      );
+    });
+  };
   const togglePlatform = (platformId: string) => {
     setSelectedPlatforms((prev) =>
       prev.includes(platformId)
@@ -258,25 +292,14 @@ export default function CreatePost() {
         )}
 
         {currentStep === 3 && (
-          <Card className="animate-fade-up">
-            <CardHeader>
-              <CardTitle>Finalize & Schedule</CardTitle>
-              <CardDescription>
-                Review and schedule your post
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <p className="text-center py-8 text-muted-foreground">
-                Scheduling options coming soon...
-              </p>
-              <div className="flex justify-between">
-                <Button variant="outline" onClick={() => setCurrentStep(2)}>
-                  Back
-                </Button>
-                <Button>Publish Now</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <FinalizeStep
+            title={title}
+            variations={variations}
+            mediaImages={mediaImages}
+            onBack={() => setCurrentStep(2)}
+            onSave={handleSave}
+            isSaving={isCreating}
+          />
         )}
       </div>
     </AppLayout>

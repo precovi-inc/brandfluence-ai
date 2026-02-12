@@ -11,8 +11,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useContentLibrary } from '@/hooks/useContentLibrary';
+import { useBrands } from '@/hooks/useBrands';
 import { useState } from 'react';
-import { Search, Plus, FileText, MoreVertical, Trash2, Edit, Copy } from 'lucide-react';
+import { Search, Plus, FileText, MoreVertical, Trash2, Edit, Copy, Palette } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -40,11 +41,15 @@ export default function ContentLibrary() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [platformFilter, setPlatformFilter] = useState<string>('all');
+  const [brandFilter, setBrandFilter] = useState<string>('all');
+
+  const { brands } = useBrands();
 
   const { content, isLoading, deletePost } = useContentLibrary({
     search: search || undefined,
     status: statusFilter !== 'all' ? statusFilter : undefined,
     platform: platformFilter !== 'all' ? platformFilter : undefined,
+    brandId: brandFilter !== 'all' ? brandFilter : undefined,
   });
 
   return (
@@ -98,6 +103,22 @@ export default function ContentLibrary() {
               <SelectItem value="twitter">Twitter</SelectItem>
               <SelectItem value="linkedin">LinkedIn</SelectItem>
               <SelectItem value="facebook">Facebook</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={brandFilter} onValueChange={setBrandFilter}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="Brand" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Brands</SelectItem>
+              {brands.map((brand) => (
+                <SelectItem key={brand.id} value={brand.id}>
+                  <div className="flex items-center gap-2">
+                    <Palette className="h-3.5 w-3.5 text-muted-foreground" />
+                    {brand.name}
+                  </div>
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -179,6 +200,15 @@ export default function ContentLibrary() {
                     <Badge variant="secondary" className={cn('text-xs', statusColors[post.status])}>
                       {post.status}
                     </Badge>
+                    {post.brand_id && (() => {
+                      const brand = brands.find(b => b.id === post.brand_id);
+                      return brand ? (
+                        <Badge variant="outline" className="text-xs gap-1">
+                          <Palette className="h-3 w-3" />
+                          {brand.name}
+                        </Badge>
+                      ) : null;
+                    })()}
                     {post.platforms.map((platform) => (
                       <Badge
                         key={platform}

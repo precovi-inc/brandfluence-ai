@@ -3,17 +3,21 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
 import { PlatformVariation } from '@/hooks/useContentGeneration';
-import { ArrowLeft, Save, Send, Loader2, CheckCircle2, Instagram, Twitter, Linkedin, Facebook } from 'lucide-react';
+import { ArrowLeft, Save, Send, Loader2, CheckCircle2, Instagram, Twitter, Linkedin, Facebook, CalendarIcon, Clock } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 
 interface FinalizeStepProps {
   title: string;
   variations: PlatformVariation[];
   mediaImages: string[];
   onBack: () => void;
-  onSave: (status: 'draft' | 'published') => Promise<void>;
+  onSave: (status: 'draft' | 'published', scheduledAt?: Date) => Promise<void>;
   isSaving: boolean;
 }
 
@@ -34,9 +38,19 @@ const platformColors: Record<string, string> = {
 export function FinalizeStep({ title, variations, mediaImages, onBack, onSave, isSaving }: FinalizeStepProps) {
   const [status, setStatus] = useState<'draft' | 'published'>('draft');
   const [saved, setSaved] = useState(false);
+  const [scheduledDate, setScheduledDate] = useState<Date | undefined>();
+  const [scheduledTime, setScheduledTime] = useState('09:00');
+
+  const getScheduledAt = (): Date | undefined => {
+    if (!scheduledDate) return undefined;
+    const [hours, minutes] = scheduledTime.split(':').map(Number);
+    const scheduled = new Date(scheduledDate);
+    scheduled.setHours(hours, minutes, 0, 0);
+    return scheduled;
+  };
 
   const handleSave = async () => {
-    await onSave(status);
+    await onSave(status, getScheduledAt());
     setSaved(true);
   };
 
@@ -51,6 +65,11 @@ export function FinalizeStep({ title, variations, mediaImages, onBack, onSave, i
             <h2 className="text-xl font-semibold">Post Saved Successfully!</h2>
             <p className="text-muted-foreground max-w-md">
               Your post has been saved as <Badge variant="secondary" className="mx-1">{status}</Badge> to your content library.
+              {scheduledDate && (
+                <span className="block mt-1">
+                  Scheduled for {format(getScheduledAt()!, 'PPP')} at {scheduledTime}
+                </span>
+              )}
             </p>
             <div className="flex gap-3 mt-4">
               <Button variant="outline" asChild>
@@ -138,6 +157,57 @@ export function FinalizeStep({ title, variations, mediaImages, onBack, onSave, i
                 </div>
               </div>
             </RadioGroup>
+          </div>
+
+          {/* Scheduling */}
+          <div className="space-y-3 rounded-lg border p-4">
+            <Label className="text-muted-foreground text-xs uppercase tracking-wider">Schedule (optional)</Label>
+            <p className="text-sm text-muted-foreground">Pick a date and time to schedule this post for later.</p>
+            <div className="flex flex-wrap gap-3">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      'w-[200px] justify-start text-left font-normal',
+                      !scheduledDate && 'text-muted-foreground'
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {scheduledDate ? format(scheduledDate, 'PPP') : 'Pick a date'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={scheduledDate}
+                    onSelect={setScheduledDate}
+                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                    initialFocus
+                    className={cn('p-3 pointer-events-auto')}
+                  />
+                </PopoverContent>
+              </Popover>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="time"
+                  value={scheduledTime}
+                  onChange={(e) => setScheduledTime(e.target.value)}
+                  className="w-[130px]"
+                />
+              </div>
+              {scheduledDate && (
+                <Button variant="ghost" size="sm" onClick={() => setScheduledDate(undefined)} className="text-muted-foreground">
+                  Clear
+                </Button>
+              )}
+            </div>
+            {scheduledDate && (
+              <p className="text-xs text-muted-foreground">
+                Scheduled for {format(scheduledDate, 'PPP')} at {scheduledTime}
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>

@@ -39,7 +39,7 @@ export default function CreatePost() {
   const { createPost, isCreating } = useContentLibrary();
   const { brands, isLoading: brandsLoading } = useBrands();
 
-  const handleSave = async (status: 'draft' | 'published') => {
+  const handleSave = async (status: 'draft' | 'published', scheduledAt?: Date) => {
     const allHashtags = variations.flatMap(v => v.hashtags);
     const uniqueHashtags = [...new Set(allHashtags)];
     const primaryContent = variations[0]?.content || '';
@@ -56,6 +56,7 @@ export default function CreatePost() {
           brand_id: selectedBrandId && selectedBrandId !== 'none' ? selectedBrandId : null,
           ai_variations: variations.map(v => ({ content: v.content, platform: v.platform })),
           published_at: status === 'published' ? new Date().toISOString() : null,
+          scheduled_at: scheduledAt ? scheduledAt.toISOString() : null,
         },
         {
           onSuccess: () => {

@@ -10,8 +10,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useContentLibrary } from '@/hooks/useContentLibrary';
+import { useContentLibrary, ContentPost } from '@/hooks/useContentLibrary';
 import { useBrands } from '@/hooks/useBrands';
+import { EditPostDialog } from '@/components/content-library/EditPostDialog';
 import { useState } from 'react';
 import { Search, Plus, FileText, MoreVertical, Trash2, Edit, Copy, Palette } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -45,12 +46,20 @@ export default function ContentLibrary() {
 
   const { brands } = useBrands();
 
-  const { content, isLoading, deletePost } = useContentLibrary({
+  const { content, isLoading, deletePost, updatePost, isUpdating } = useContentLibrary({
     search: search || undefined,
     status: statusFilter !== 'all' ? statusFilter : undefined,
     platform: platformFilter !== 'all' ? platformFilter : undefined,
     brandId: brandFilter !== 'all' ? brandFilter : undefined,
   });
+
+  const [editingPost, setEditingPost] = useState<ContentPost | null>(null);
+
+  const handleEditSave = (id: string, updates: Partial<ContentPost>) => {
+    updatePost({ id, updates }, {
+      onSuccess: () => setEditingPost(null),
+    });
+  };
 
   return (
     <AppLayout>
@@ -178,7 +187,7 @@ export default function ContentLibrary() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setEditingPost(post)}>
                           <Edit className="mr-2 h-4 w-4" />
                           Edit
                         </DropdownMenuItem>
@@ -228,6 +237,14 @@ export default function ContentLibrary() {
           </div>
         )}
       </div>
+
+      <EditPostDialog
+        post={editingPost}
+        open={!!editingPost}
+        onOpenChange={(open) => !open && setEditingPost(null)}
+        onSave={handleEditSave}
+        isSaving={isUpdating}
+      />
     </AppLayout>
   );
 }

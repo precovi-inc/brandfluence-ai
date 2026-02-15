@@ -245,6 +245,10 @@ export default function ContentLibrary() {
         open={!!previewPost}
         onOpenChange={(open) => !open && setPreviewPost(null)}
         brandName={previewPost?.brand_id ? brands.find(b => b.id === previewPost.brand_id)?.name : undefined}
+        onEdit={(post) => {
+          setPreviewPost(null);
+          setEditingPost(post);
+        }}
       />
 
       <EditPostDialog

@@ -13,6 +13,7 @@ import {
 import { useContentLibrary, ContentPost } from '@/hooks/useContentLibrary';
 import { useBrands } from '@/hooks/useBrands';
 import { EditPostDialog } from '@/components/content-library/EditPostDialog';
+import { PostPreviewDialog } from '@/components/content-library/PostPreviewDialog';
 import { useState } from 'react';
 import { Search, Plus, FileText, MoreVertical, Trash2, Edit, Copy, Palette } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -54,6 +55,7 @@ export default function ContentLibrary() {
   });
 
   const [editingPost, setEditingPost] = useState<ContentPost | null>(null);
+  const [previewPost, setPreviewPost] = useState<ContentPost | null>(null);
 
   const handleEditSave = (id: string, updates: Partial<ContentPost>) => {
     updatePost({ id, updates }, {
@@ -171,7 +173,7 @@ export default function ContentLibrary() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {content.map((post) => (
-              <Card key={post.id} className="transition-smooth hover:shadow-md">
+              <Card key={post.id} className="transition-smooth hover:shadow-md cursor-pointer" onClick={() => setPreviewPost(post)}>
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="min-w-0 flex-1">
@@ -186,7 +188,7 @@ export default function ContentLibrary() {
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                      <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                         <DropdownMenuItem onClick={() => setEditingPost(post)}>
                           <Edit className="mr-2 h-4 w-4" />
                           Edit
@@ -237,6 +239,13 @@ export default function ContentLibrary() {
           </div>
         )}
       </div>
+
+      <PostPreviewDialog
+        post={previewPost}
+        open={!!previewPost}
+        onOpenChange={(open) => !open && setPreviewPost(null)}
+        brandName={previewPost?.brand_id ? brands.find(b => b.id === previewPost.brand_id)?.name : undefined}
+      />
 
       <EditPostDialog
         post={editingPost}

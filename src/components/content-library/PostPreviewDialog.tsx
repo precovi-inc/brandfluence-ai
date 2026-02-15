@@ -6,7 +6,6 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { ContentPost } from '@/hooks/useContentLibrary';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -91,7 +90,7 @@ export function PostPreviewDialog({ post, open, onOpenChange, brandName, onEdit 
           </div>
         </DialogHeader>
 
-        <Tabs defaultValue="content" className="flex-1 flex flex-col min-h-0">
+        <Tabs defaultValue="content" className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <TabsList className="mx-6 mt-3 w-fit">
             <TabsTrigger value="content" className="gap-1.5">
               <FileText className="h-3.5 w-3.5" />
@@ -105,7 +104,7 @@ export function PostPreviewDialog({ post, open, onOpenChange, brandName, onEdit 
             )}
           </TabsList>
 
-          <ScrollArea className="flex-1">
+          <div className="flex-1 min-h-0 overflow-y-auto">
             <TabsContent value="content" className="px-6 pb-6 mt-0 pt-4">
               <div className="space-y-4">
                 <div className="rounded-lg border bg-muted/30 p-4">
@@ -167,7 +166,7 @@ export function PostPreviewDialog({ post, open, onOpenChange, brandName, onEdit 
                 </div>
               </TabsContent>
             )}
-          </ScrollArea>
+          </div>
         </Tabs>
       </DialogContent>
     </Dialog>

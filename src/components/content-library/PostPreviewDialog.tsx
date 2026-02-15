@@ -8,8 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ContentPost } from '@/hooks/useContentLibrary';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Instagram, Twitter, Linkedin, Facebook, Hash, FileText, Sparkles, Calendar, Clock } from 'lucide-react';
+import { Instagram, Twitter, Linkedin, Facebook, Hash, FileText, Sparkles, Calendar, Clock, Edit } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface PostPreviewDialogProps {
@@ -17,6 +18,7 @@ interface PostPreviewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   brandName?: string;
+  onEdit?: (post: ContentPost) => void;
 }
 
 const platformIcons: Record<string, typeof Instagram> = {
@@ -39,7 +41,7 @@ const statusStyles: Record<string, string> = {
   published: 'bg-primary/10 text-primary',
 };
 
-export function PostPreviewDialog({ post, open, onOpenChange, brandName }: PostPreviewDialogProps) {
+export function PostPreviewDialog({ post, open, onOpenChange, brandName, onEdit }: PostPreviewDialogProps) {
   if (!post) return null;
 
   const variations = (post.ai_variations || []) as Array<{ content: string; platform: string }>;
@@ -72,6 +74,20 @@ export function PostPreviewDialog({ post, open, onOpenChange, brandName }: PostP
                 })}
               </div>
             </div>
+            {onEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 shrink-0"
+                onClick={() => {
+                  onOpenChange(false);
+                  onEdit(post);
+                }}
+              >
+                <Edit className="h-3.5 w-3.5" />
+                Edit
+              </Button>
+            )}
           </div>
         </DialogHeader>
 
